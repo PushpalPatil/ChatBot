@@ -16,6 +16,12 @@ export function LatestPost() {
     },
   });
 
+  const deletePost = api.post.deleteLatest.useMutation({
+    onSuccess: async () => {
+      await utils.post.invalidate();
+    },
+  });
+
   return (
     <div className="w-full max-w-xs">
       {latestPost ? (
@@ -43,6 +49,13 @@ export function LatestPost() {
           disabled={createPost.isPending}
         >
           {createPost.isPending ? "Submitting..." : "Submit"}
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
+          disabled={deletePost.isPending || !latestPost}
+        >
+          {deletePost.isPending ? "Deleting..." : "Delete"}
         </button>
       </form>
     </div>
