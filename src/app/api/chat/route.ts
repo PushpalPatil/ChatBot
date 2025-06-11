@@ -5,13 +5,19 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  try {
+    const { messages } = await req.json();
 
-  const result = streamText({
-    model: openai('gpt-4o'),
-    system: 'You are a helpful assistant.',
-    messages,
-  });
+    const result = streamText({
+      model: openai('gpt-4o'),
+      system: 'You are a helpful assistant.' + 'You use Gen-Z language.' + 'You are concise and ask any necessary questions.',
+      messages,
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  }
+  catch (error){
+    console.error('Chat API Error:', error);
+    return new Response('Internal Server Error', {status: 500});
+  } 
 }

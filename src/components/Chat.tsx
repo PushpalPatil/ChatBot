@@ -7,8 +7,8 @@ const Spinner = () => (
 
 export function Chat() {
     const { messages, setMessages, input, setInput, append, handleInputChange, handleSubmit, status, error, reload, stop } = useChat({});
- 
-    const handleDelete = (id: string) =>{
+
+    const handleDelete = (id: string) => {
         setMessages(messages.filter(message => message.id !== id))
         console.log("msg deleted")
     }
@@ -16,8 +16,16 @@ export function Chat() {
         <div className="flex flex-col w-full max-w-md mx-auto">
             <div className="flex-1 overflow-y-auto">
 
+                <MyCustomInput value={input} onChange={value => setInput(value)} />
+                <MySubmitButton onClick={() => {
+                    // Send a new message to the AI provider
+                    append({
+                        role: 'user',
+                        content: input,
+                    })
+                }} />
                 {messages.map(m => (
-
+                    // modify msgs
                     <div key={m.id} className="mb-4">
 
                         <strong>{m.role}: </strong>
