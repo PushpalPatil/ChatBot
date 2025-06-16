@@ -9,15 +9,14 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = streamText({
-      model: openai('gpt-4o'),
-      system: 'You are a helpful assistant.' + 'You use Gen-Z language.' + 'You are concise and ask any necessary questions.',
+      model: openai('gpt-4o-mini'), // Using gpt-4o-mini for cost efficiency
+      system: 'You are a helpful assistant built into a T3 stack application.',
       messages,
     });
 
     return result.toDataStreamResponse();
+  } catch (error) {
+    console.error('Chat API error:', error);
+    return new Response('Internal Server Error', { status: 500 });
   }
-  catch (error){
-    console.error('Chat API Error:', error);
-    return new Response('Internal Server Error', {status: 500});
-  } 
 }

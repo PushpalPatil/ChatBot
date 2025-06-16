@@ -1,8 +1,12 @@
-// Example model schema from the Drizzle docs
-// https://orm.drizzle.team/docs/sql-schema-declaration
-
 import { sql } from "drizzle-orm";
-import { index, pgTableCreator } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTableCreator,
+  serial,
+  timestamp,
+  varchar,
+  text,
+} from "drizzle-orm/pg-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -10,18 +14,48 @@ import { index, pgTableCreator } from "drizzle-orm/pg-core";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `my-chatbot_${name}`);
+export const createTable = pgTableCreator((name) => `chatbot_${name}`);
 
-export const posts = createTable(
-  "post",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
+export const chatSessions = createTable(
+  "chat_session",
+  {
+    id: serial("id").primaryKey(),
+    title: varchar("title", { length: 256 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [index("name_idx").on(t.name)],
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date()
+    ),
+  },
+  (example) => ({
+    titleIndex: index("chat_session_title_idx").on(example.title),
+    createdAtIndex: index("chat_session_created_at_idx").on(example.createdAt),
+  })
 );
+
+export const chatMessages = createTable(
+  "chat_message",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: serial("session_id")
+      .notNull()
+      .references(() => chatSessions.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 20 }).notNull(), // 'user' or 'assistant'
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (example) => ({
+    sessionIdIndex: index("chat_message_session_id_idx").on(example.sessionId),
+    roleIndex: index("chat_message_role_idx").on(example.role),
+    createdAtIndex: index("chat_message_created_at_idx").on(example.createdAt),
+  })
+);
+
+// Types for TypeScript
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type NewChatSession = typeof chatSessions.$inferInsert;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type NewChatMessage = typeof chatMessages.$inferInsert;
